@@ -1,9 +1,10 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import styled from 'styled-components'
+import { TezosDocumentation } from '../models'
+import { capitalizeFirstLetter } from '../utils'
 
 export const Menu = styled.ul`
-
   /* main UL component called: "Menu" */
   list-style-type: none;
   margin: 0;
@@ -30,32 +31,32 @@ export const Menu = styled.ul`
 
   /* dropdown LI */
   & > .dropdown {
-      display: inline-block;
+    display: inline-block;
 
-      & > .dropdown-content {
-        display: none;
-        position: absolute;
-        background-color: #f9f9f9;
-        min-width: 160px;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        z-index: 1;
+    & > .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+      z-index: 1;
 
-        & > a {
-          color: black;
-          padding: 12px 16px;
-          text-decoration: none;
-          display: block;
-          text-align: left;
-          &:hover {
-            background-color: #f1f1f1;
-          }
+      & > a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        text-align: left;
+        &:hover {
+          background-color: #f1f1f1;
         }
       }
-
-      &:hover .dropdown-content {
-        display: block
-      }
     }
+
+    &:hover .dropdown-content {
+      display: block;
+    }
+  }
 `
 
 const ControlsContainer = styled.div`
@@ -91,40 +92,63 @@ const Logo = styled.img`
   }
 `
 
-export default function HeaderBar () {
-  return (
-        <Heading>
-          <a href=".">
+const createMenuBars = (networks: string[], endpoint: string) => {
+  return networks.map((network, key) => (
+    <Link
+      key={key}
+      reloadDocument={true}
+      to={`/${endpoint}/${network.toLowerCase()}`}
+    >
+      {network}
+    </Link>
+  ))
+}
 
-            <Logo
-              src="https://uploads-ssl.webflow.com/616ab4741d375d1642c19027/6182aa129cd593489de5d546_logo-vertical.svg"
-              alt="Redoc logo"
-            />
+export default function HeaderBar(parms: { documents: TezosDocumentation[] }) {
+  const data = parms.documents
+  const networks = Array.from(
+    new Set(
+      data
+        ?.filter((data) => data.network !== 'all')
+        .map((data) => capitalizeFirstLetter(data.network))
+    )
+  )
+  networks.push('Mainnet')
+  return (
+    <Heading>
+      <a href=".">
+        <Logo
+          src="https://uploads-ssl.webflow.com/616ab4741d375d1642c19027/6182aa129cd593489de5d546_logo-vertical.svg"
+          alt="Redoc logo"
+        />
+      </a>
+      <ControlsContainer></ControlsContainer>
+      <Menu>
+        <li className="dropdown">
+          <a href="#" className="dropbtn">
+            General Endpoints
           </a>
-          <ControlsContainer>
-          </ControlsContainer>
-          <Menu>
-              <li className="dropdown">
-                <a href="#" className="dropbtn">General Endpoints</a>
-                <div className="dropdown-content">
-                   <Link reloadDocument={true} to="/general/mainnet">Mainnet</Link>
-                   <Link reloadDocument={true} to="/general/hangzhounet">Hangzhounet</Link>
-                </div>
-              </li>
-              <li className="dropdown">
-                <a href="#" className="dropbtn">Block Endpoints</a>
-                <div className="dropdown-content">
-                   <Link reloadDocument={true} to="/block/mainnet">Mainnet</Link>
-                   <Link reloadDocument={true} to="/block/hangzhounet">Hangzhounet</Link>
-                </div>
-              </li>
-              <li className="dropdown">
-                <a href="#" className="dropbtn">Mempool Endpoints</a>
-                <div className="dropdown-content">
-                   <Link reloadDocument={true} to="/mempool/mainnet">Mainnet</Link>
-                   <Link reloadDocument={true} to="/mempool/hangzhounet">Hangzhounet</Link>
-                </div>
-              </li>
-          </Menu>
-        </Heading>)
+          <div className="dropdown-content">
+            {createMenuBars(networks, 'general')}
+          </div>
+        </li>
+        <li className="dropdown">
+          <a href="#" className="dropbtn">
+            Block Endpoints
+          </a>
+          <div className="dropdown-content">
+            {createMenuBars(networks, 'blocks')}
+          </div>
+        </li>
+        <li className="dropdown">
+          <a href="#" className="dropbtn">
+            Mempool Endpoints
+          </a>
+          <div className="dropdown-content">
+            {createMenuBars(networks, 'mempool')}
+          </div>
+        </li>
+      </Menu>
+    </Heading>
+  )
 }
