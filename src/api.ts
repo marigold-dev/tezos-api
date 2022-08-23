@@ -1,5 +1,5 @@
 import { GithubObject, TezosDocumentation } from './models'
-import { capitalizeFirstLetter } from './utils'
+import { capitalizeFirstLetter } from './helper'
 
 export const fetchGithubObjects = async () => {
   const cache = localStorage.getItem('tezosOpenAPI')

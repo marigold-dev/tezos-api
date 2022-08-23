@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import styled from 'styled-components'
 import { TezosDocumentation } from '../models'
-import { capitalizeFirstLetter } from '../utils'
+import { capitalizeFirstLetter } from '../helper'
 
 export const Menu = styled.ul`
   /* main UL component called: "Menu" */
