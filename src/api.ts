@@ -1,18 +1,21 @@
-import { GithubObject, TezosDocumentation } from './models'
+import { GithubObject, TezosDocumentation, TezosAPIStorage } from './models'
 import { capitalizeFirstLetter } from './helper'
 
 export const fetchGithubObjects = async () => {
-  const cache = localStorage.getItem('tezosOpenAPI')
+  const cache = localStorage.getItem('tezos_api_storage')
 
   if (cache) {
-    return JSON.parse(cache) as TezosDocumentation[]
+    const storage = JSON.parse(cache) as TezosAPIStorage
+    if (Date.now() > storage.timestamp + 1000 * 60 * 60 * 24) {
+      return storage.tezosNodes
+    }
   }
 
   const apiUrl =
     'https://api.github.com/repos/tezos/tezos-mirror/contents/docs/api'
   const githubResponse = await fetch(apiUrl)
   const githubObjects = (await githubResponse.json()) as GithubObject[]
-  const apiList = githubObjects
+  const tezosNodes = githubObjects
     .filter((file) => file.name.includes('openapi.json'))
     .map((file) => {
       const args = file.name.split('-')
@@ -37,8 +40,13 @@ export const fetchGithubObjects = async () => {
       }
     })
 
-  localStorage.setItem('tezosOpenAPI', JSON.stringify(apiList))
-  return apiList as TezosDocumentation[]
+  const storage: TezosAPIStorage = {
+    tezosNodes,
+    timestamp: Date.now(),
+  }
+
+  localStorage.setItem('tezos_api_storage', JSON.stringify(storage))
+  return tezosNodes as TezosDocumentation[]
 }
 
 export const fetchDocumentation = async (

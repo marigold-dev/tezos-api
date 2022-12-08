@@ -22,3 +22,8 @@ export type TezosDocumentation = {
   type: string
   url: string
 }
+
+export interface TezosAPIStorage {
+  tezosNodes: TezosDocumentation[]
+  timestamp: number
+}
