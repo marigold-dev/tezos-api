@@ -1,48 +1,52 @@
 import { useQuery } from '@tanstack/react-query'
-import React from 'react'
 import { Documentation } from './Documentation'
 import { useParams } from 'react-router-dom'
 import { fetchDocumentation, fetchGithubObjects } from '../api'
 import HeaderBar from './HeaderBar'
+import { TezosDocumentation } from '../models'
+import { capitalizeFirstLetter } from '../helper'
 
 export function Page() {
-  const network = useParams().network || 'mainnet'
-  const endpoint = useParams().endpoint || 'general'
+  const params = useParams()
+  const type = params.type || 'base'
+  const protocol = params.protocol || 'all'
+  const rc = params.rc == 'rc' || false
 
-  const { data: tezosDocumentations } = useQuery(
-    ['tezosOpenAPI'],
-    fetchGithubObjects,
-    {
-      cacheTime: 1000 * 60 * 60 * 24,
-      staleTime: 1000 * 60 * 60 * 24,
-    }
-  )
+  const { data: docs } = useQuery({
+    queryKey: ['tezosOpenAPI'],
+    queryFn: fetchGithubObjects,
+  })
 
-  const selected = tezosDocumentations?.find((x) =>
-    x.network === 'all' || network === 'mainnet'
-      ? x.type === endpoint
-      : x.network === network && x.type === endpoint
+  const selected = docs?.find(
+    (x: TezosDocumentation) =>
+      x.rc === rc &&
+      (x.network === 'all' || protocol === 'mainnet'
+        ? x.type === type
+        : x.network === protocol && x.type === type)
   )
   const url = selected?.url
+
+  const networks = Array.from(
+    new Set(
+      docs
+        ?.filter((data) => data.network !== 'all')
+        .map((data) => capitalizeFirstLetter(data.network))
+    )
+  )
+  networks.push('Mainnet')
 
   const {
     status,
     fetchStatus,
     data: dataDocumentation,
-  } = useQuery(
-    ['documentation', url],
-    () => fetchDocumentation(url!, endpoint, network).then((data) => data),
-    {
-      cacheTime: 1000 * 60 * 60 * 24,
-      staleTime: 1000 * 60 * 60 * 24,
-      enabled: !!url,
-    }
-  )
+  } = useQuery({
+    queryKey: ['documentation', url, type, protocol, rc, networks],
+    queryFn: fetchDocumentation(url!, type, protocol, rc, networks),
+    enabled: !!url,
+  })
 
   const documents =
-    (fetchStatus !== 'idle' && status !== 'success') || !tezosDocumentations
-      ? []
-      : tezosDocumentations
+    (fetchStatus !== 'idle' && status !== 'success') || !docs ? [] : docs
 
   return (
     <>

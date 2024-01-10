@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link } from 'react-router-dom'
 import styled from 'styled-components'
 import { TezosDocumentation } from '../models'
@@ -92,23 +91,49 @@ const Logo = styled.img`
   }
 `
 
-const createMenuBars = (networks: string[], endpoint: string) => {
-  return networks.map((network, key) => (
-    <Link
-      key={key}
-      reloadDocument={true}
-      to={`/${endpoint}/${network.toLowerCase()}`}
-    >
-      {network}
-    </Link>
-  ))
+const Badge = styled.div`
+  display: inline-block;
+  padding: 2px 5px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  background-color: red;
+  margin-left: 5px;
+`
+
+const createMenuBars = (type: string, documents: TezosDocumentation[]) => {
+  const bars = documents
+    .filter((data) => data.type === type)
+    .sort((a, _) => {
+      if (a.rc) {
+        return 1
+      }
+      return -1
+    })
+    .map((doc, key) => (
+      <Link
+        // style={{ display: 'flex', justifyContent: 'space-between' }}
+        key={key}
+        reloadDocument={true}
+        to={`/${type}/${doc.network.toLowerCase()}/${doc.rc ? 'rc' : ''}`}
+      >
+        {doc && doc.network === 'all'
+          ? 'All Protocols'
+          : capitalizeFirstLetter(doc.network)}
+
+        {doc.rc && <Badge>RC</Badge>}
+      </Link>
+    ))
+
+  return bars
 }
 
 export default function HeaderBar(parms: { documents: TezosDocumentation[] }) {
-  const data = parms.documents
+  const documents = parms.documents
   const networks = Array.from(
     new Set(
-      data
+      documents
         ?.filter((data) => data.network !== 'all')
         .map((data) => capitalizeFirstLetter(data.network))
     )
@@ -126,26 +151,34 @@ export default function HeaderBar(parms: { documents: TezosDocumentation[] }) {
       <Menu>
         <li className="dropdown">
           <a href="#" className="dropbtn">
-            General Endpoints
+            Base
           </a>
           <div className="dropdown-content">
-            {createMenuBars(networks, 'general')}
+            {createMenuBars('base', documents)}
           </div>
         </li>
         <li className="dropdown">
           <a href="#" className="dropbtn">
-            Block Endpoints
+            Blocks
           </a>
           <div className="dropdown-content">
-            {createMenuBars(networks, 'blocks')}
+            {createMenuBars('blocks', documents)}
           </div>
         </li>
         <li className="dropdown">
           <a href="#" className="dropbtn">
-            Mempool Endpoints
+            Mempool
           </a>
           <div className="dropdown-content">
-            {createMenuBars(networks, 'mempool')}
+            {createMenuBars('mempool', documents)}
+          </div>
+        </li>
+        <li className="dropdown">
+          <a href="#" className="dropbtn">
+            Smart Rollup
+          </a>
+          <div className="dropdown-content">
+            {createMenuBars('smart-rollup', documents)}
           </div>
         </li>
       </Menu>

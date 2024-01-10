@@ -20,10 +20,12 @@ export interface GithubObject {
 export type TezosDocumentation = {
   network: string
   type: string
-  url: string
+  url: string,
+  rc: boolean
 }
 
 export interface TezosAPIStorage {
   tezosNodes: TezosDocumentation[]
   timestamp: number
 }
+
