@@ -2,51 +2,57 @@ import { GithubObject, TezosDocumentation, TezosAPIStorage } from './models'
 import { capitalizeFirstLetter } from './helper'
 
 export const fetchGithubObjects = async () => {
-  const cache = localStorage.getItem('tezos_api_storage')
+  try {
+    const cache = localStorage.getItem('tezos_api_storage')
 
-  if (cache) {
-    const storage = JSON.parse(cache) as TezosAPIStorage
-    if (Date.now() > storage.timestamp + 1000 * 60 * 60 * 24) {
-      return storage.tezosNodes
-    }
-  }
-
-  const apiUrl =
-    'https://api.github.com/repos/tezos/tezos-mirror/contents/docs/api'
-  const githubResponse = await fetch(apiUrl)
-  const githubObjects = (await githubResponse.json()) as GithubObject[]
-  const tezosNodes = githubObjects
-    .filter((file) => file.name.includes('openapi.json'))
-    .map((file) => {
-      const args = file.name.split('-')
-      if (args[0] === 'rpc') {
-        return {
-          network: 'all',
-          type: 'general',
-          url: file.download_url,
-        }
-      } else if (args[1] === 'mempool') {
-        return {
-          network: args[0] + 'net',
-          type: args[1],
-          url: file.download_url,
-        }
-      } else {
-        return {
-          network: args[0] + 'net',
-          type: 'blocks',
-          url: file.download_url,
-        }
+    if (cache) {
+      const storage = JSON.parse(cache) as TezosAPIStorage
+      if (Date.now() > storage.timestamp + 1000 * 60 * 60 * 24) {
+        return storage.tezosNodes
       }
-    })
+    }
 
-  const storage: TezosAPIStorage = {
-    tezosNodes,
-    timestamp: Date.now(),
+    const apiUrl =
+      'https://api.github.com/repos/tezos/tezos-mirror/contents/docs/api'
+    const githubResponse = await fetch(apiUrl)
+    const githubObjects = (await githubResponse.json()) as GithubObject[]
+    const tezosNodes = githubObjects
+      .filter((file) => file.name.includes('openapi.json'))
+      .map((file) => {
+        const args = file.name.split('-')
+        if (args[0] === 'rpc') {
+          return {
+            network: 'all',
+            type: 'general',
+            url: file.download_url,
+          }
+        } else if (args[1] === 'mempool') {
+          return {
+            network: args[0] + 'net',
+            type: args[1],
+            url: file.download_url,
+          }
+        } else {
+          return {
+            network: args[0] + 'net',
+            type: 'blocks',
+            url: file.download_url,
+          }
+        }
+      })
+
+    const storage: TezosAPIStorage = {
+      tezosNodes,
+      timestamp: Date.now(),
+    }
+
+    localStorage.setItem('tezos_api_storage', JSON.stringify(storage))
+    return tezosNodes as TezosDocumentation[]
+  } catch (e) {
+    console.log(e)
+    localStorage.removeItem('tezos_api_storage')
+    return []
   }
-
-  localStorage.setItem('tezos_api_storage', JSON.stringify(storage))
-  return tezosNodes as TezosDocumentation[]
 }
 
 export const fetchDocumentation = async (
