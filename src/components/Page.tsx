@@ -11,7 +11,11 @@ export function Page() {
 
   const { data: tezosDocumentations } = useQuery(
     ['tezosOpenAPI'],
-    fetchGithubObjects
+    fetchGithubObjects,
+    {
+      cacheTime: 1000 * 60 * 60 * 24,
+      staleTime: 1000 * 60 * 60 * 24,
+    }
   )
 
   const selected = tezosDocumentations?.find((x) =>
@@ -29,6 +33,8 @@ export function Page() {
     ['documentation', url],
     () => fetchDocumentation(url!, endpoint, network).then((data) => data),
     {
+      cacheTime: 1000 * 60 * 60 * 24,
+      staleTime: 1000 * 60 * 60 * 24,
       enabled: !!url,
     }
   )
